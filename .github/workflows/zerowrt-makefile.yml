@@ -1,0 +1,105 @@
+# CI 项目
+name: zerowrt-makefile
+
+# CI 计划
+on:
+  # 工作流调用
+  workflow_call:
+    inputs:
+      WRT_BRANCH:
+        required: true
+        type: string
+      WRT_REPO:
+        required: true
+        type: string
+
+# CI 环境
+env:
+  # GITHUB ENV
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  # WRT ENV
+  WRT_BRANCH: ${{inputs.WRT_BRANCH}}
+  WRT_REPO: ${{inputs.WRT_REPO}}
+
+# CI 任务
+jobs:
+  zerowrt-makefile:
+    name: zerowrt-makefile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: InitWorkflow
+        run: |
+          workflowPath="$RUNNER_TEMP/Workflow-$(uuidgen | tr -d '-')"
+          git clone --depth=1 https://github.com/zero-dream/github-action.git "$workflowPath/" || exit 1
+          chmod +x "$workflowPath/zerodream/init/init.sh"
+          bash "$workflowPath/zerodream/init/init.sh"
+          rm -rf "$workflowPath/"
+
+      - name: InitKeyValueEnv
+        run: |
+          source "$ZD_LibPath/setEnv.sh"
+          source "$ZD_LibPath/createPath.sh"
+          setEnv 'CI_UpdatePath' "$(createTempPath 'CiUpdate:dir')"
+          setEnv 'WRT_NAME' 'ZeroWrt'
+          setEnv 'WRT_MainPath' "$GITHUB_WORKSPACE/$WRT_NAME"
+          setEnv 'WRT_ConfigPath' "$WRT_MainPath/.config"
+
+      - name: CloneCode
+        run: |
+          git clone --depth=1 --single-branch --branch "$WRT_BRANCH" "$WRT_REPO" "$WRT_MainPath/"
+          # 删除指定下载源
+          PROJECT_MIRRORS_FILE="$WRT_MainPath/scripts/projectsmirrors.json"
+          if [[ -f "$PROJECT_MIRRORS_FILE" ]]; then
+            sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
+          fi
+
+      - name: UpdateFeeds
+        run: |
+          cd "$WRT_MainPath/"
+          "$WRT_MainPath/scripts/feeds" update -a
+
+      - name: UpdatePkg
+        run: |
+          bash "$CI_ScriptPath/UpdatePkg.sh"
+        env:
+          GH_TOKEN: ${{secrets.WORKFLOW_TOKEN}}
+          ZeroDream_Secret: ${{secrets.ZERODREAM_SECRET}}
+          ZeroWrt_ApiToken: ${{secrets.ZEROWRT_APITOKEN}}
+          ZeroWrt_Secret: ${{secrets.ZEROWRT_SECRET}}
+
+      - name: CollectArtifact
+        run: |
+          # Hook
+          source "$ZD_LibPath/hook.sh"
+          hook 'ZeroWrtMakefile/CollectArtifact'
+
+      - name: CollectRelease
+        run: |
+          # SetEnv
+          source "$ZD_LibPath/setEnv.sh"
+          source "$ZD_LibPath/createPath.sh"
+          setEnv 'CI_ReleaseBodyPath' "$(createTempPath 'CiReleaseBody:file')"
+          # Hook
+          source "$ZD_LibPath/hook.sh"
+          hook 'ZeroWrtMakefile/CollectRelease'
+          # UploadReleaseBodyEnv
+          echo 'CI_ReleaseBody<<EOF' >>$GITHUB_ENV
+          cat "$CI_ReleaseBodyPath" >>$GITHUB_ENV
+          echo 'EOF' >>$GITHUB_ENV
+          
+      - name: UploadArtifact
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{env.WRT_NAME}}-${{env.ZD_Date}}
+          path: ${{env.ZD_ArtifactUploadPath}}/
+          retention-days: 1 # 保留附件天数，最大值为 90 天
+
+      - name: UploadRelease
+        uses: softprops/action-gh-release@master
+        with:
+          tag_name: MakeFile-${{env.ZD_Date}}
+          files: ${{env.ZD_ReleaseUploadPath}}/**
+          body: ${{env.CI_ReleaseBody}}

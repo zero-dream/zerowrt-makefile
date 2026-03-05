@@ -1,0 +1,18 @@
+#!/bin/bash
+# Copyright (C) 2000 ZeroDream
+# https://github.com/zero-dream
+
+# --------------------------------------------------
+
+cd "$WRT_MainPath/"
+
+# --------------------------------------------------
+
+# BodyRelease
+cat >"$CI_ReleaseBodyPath" <<-EOF
+ZeroWrt makefile
+EOF
+
+# --------------------------------------------------
+
+exit 0

@@ -1,0 +1,25 @@
+# CI 项目
+name: update-package
+
+# CI 权限
+permissions: write-all
+
+# CI 计划
+on:
+  # 自动运行: 每天早上 3 点
+  schedule:
+    - cron: 0 19 * * *
+  # 手动运行
+  workflow_dispatch:
+
+# CI 任务
+jobs:
+  update-package:
+    name: update-package
+    uses: ./.github/workflows/zerowrt-makefile.yml
+    secrets: inherit
+    with:
+      # 源码分支
+      WRT_BRANCH: main
+      # 源码链接
+      WRT_REPO: https://github.com/VIKINGYFY/immortalwrt.git
