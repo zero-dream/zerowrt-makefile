@@ -10,17 +10,17 @@ source "$ZD_LibPath/private/getApp.sh"
 
 # ZeroWrtExcludePackages
 ZeroWrtExcludePackages=(
-  'frp'
+  # 'frp'
 )
 
 # UpdatePkg
-exclude=()
-for excludePackage in "${ZeroWrtExcludePackages[@]}"; do
-  exclude+=(--exclude "$excludePackage")
+excludePackages=()
+for exclude in "${ZeroWrtExcludePackages[@]}"; do
+  excludePackages+=(--exclude "$exclude")
 done
 appPath=$(getApp 'zerowrt-makefile-linux-amd64') || exit 1
 "$appPath" updatepkg \
-  "${exclude[@]}" \
+  "${excludePackages[@]}" \
   --wrtPath "$WRT_MainPath" \
   --outputPath "$CI_UpdatePath"
 cp -a "$CI_UpdatePath/makefile" "$ZD_ReleaseUploadPath/makefile"
