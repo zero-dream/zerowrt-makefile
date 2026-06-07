@@ -93,13 +93,13 @@ jobs:
       - name: UploadArtifact
         uses: actions/upload-artifact@main
         with:
-          name: ${{env.WRT_NAME}}-${{env.ZD_Date}}
+          name: ${{env.WRT_NAME}}-${{env.ZD_DateUTC}}
           path: ${{env.ZD_ArtifactUploadPath}}/
           retention-days: 1 # 保留附件天数，最大值为 90 天
 
       - name: UploadRelease
         uses: softprops/action-gh-release@master
         with:
-          tag_name: MakeFile-${{env.ZD_Date}}
+          tag_name: MakeFile-${{env.ZD_DateUTC}}
           files: ${{env.ZD_ReleaseUploadPath}}/**
           body: ${{env.CI_ReleaseBody}}
