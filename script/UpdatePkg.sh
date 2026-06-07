@@ -4,7 +4,7 @@
 
 # Source
 
-source "$ZD_LibPath/private/getApp.sh"
+source "$ZD_LibPath/private/getLib.sh"
 
 # --------------------------------------------------
 
@@ -18,7 +18,7 @@ excludePackages=()
 for exclude in "${ZeroWrtExcludePackages[@]}"; do
   excludePackages+=(--exclude "$exclude")
 done
-appPath=$(getApp 'zerowrt-makefile-linux-amd64') || exit 1
+appPath=$(getLib 'zerowrt-makefile-linux-amd64') || exit 1
 "$appPath" updatepkg \
   "${excludePackages[@]}" \
   --wrtPath "$WRT_MainPath" \
