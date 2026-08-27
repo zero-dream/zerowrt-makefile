@@ -38,10 +38,11 @@ jobs:
           bash "$workflowPath/zerodream/init/init.sh"
           rm -rf "$workflowPath/"
 
-      - name: InitKeyValueEnv
+      - name: InitKeyValue
         run: |
           source "$ZD_LibPath/setEnv.sh"
           source "$ZD_LibPath/createPath.sh"
+          setEnv 'ZERO_LIB_REPO' "$ZD_Owner/github-library"
           setEnv 'CI_UpdatePath' "$(createTempPath 'CiUpdate:dir')"
           setEnv 'WRT_NAME' 'ZeroWrt'
           setEnv 'WRT_MainPath' "$GITHUB_WORKSPACE/$WRT_NAME"
