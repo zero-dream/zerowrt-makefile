@@ -75,7 +75,7 @@ jobs:
         run: |
           # Hook
           source "$ZD_LibPath/hook.sh"
-          hook 'ZeroWrtMakefile/CollectArtifact'
+          hook 'ZeroWrtMakefile/CollectArtifact.hook'
 
       - name: CollectRelease
         run: |
@@ -85,7 +85,7 @@ jobs:
           setEnv 'CI_ReleaseBodyPath' "$(createTempPath 'CiReleaseBody:file')"
           # Hook
           source "$ZD_LibPath/hook.sh"
-          hook 'ZeroWrtMakefile/CollectRelease'
+          hook 'ZeroWrtMakefile/CollectRelease.hook'
           # UploadReleaseBodyEnv
           echo 'CI_ReleaseBody<<EOF' >>$GITHUB_ENV
           cat "$CI_ReleaseBodyPath" >>$GITHUB_ENV
